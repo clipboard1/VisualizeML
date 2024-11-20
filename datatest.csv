@@ -1,0 +1,16 @@
+Age,Workclass,Is_Married
+25,Private,True
+38,Self-emp-not-inc,True
+28,Local-gov,True
+44,Private,True
+18,Private,False
+34,Private,False
+29,Private,False
+63,Self-emp-not-inc,True
+24,Private,False
+55,Private,True
+65,Private,True
+36,Federal-gov,True
+26,Private,False
+58,Private,True
+48,Private,True
