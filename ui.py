@@ -5,11 +5,11 @@ from DataHandlers.DbHandler import getTableNames
 from DataHandlers.DataParsers import (
     preprocessData,
     analyzeProperty,
-    getChartTypesForQuality,
+    getChartTypesForIndicator,
     prepareData,
     plotData,
 )
-from enums import Quality, ChartType
+from enums import Indicator, ChartType
 
 
 def showError(parentWindow, message):
@@ -77,7 +77,7 @@ def createDbWindow(
                 conn, cursor = connectToDatabase(params)
                 saveConfig(params)
                 dbWindow.withdraw()
-                showTableSelectionWindow(parentWindow, conn, cursor)
+                showTableSelectionWindow(parentWindow, cursor)
             except Exception as e:
                 showError(dbWindow, f"Ошибка при подключении к базе данных: {e}")
 
@@ -193,7 +193,7 @@ def createVisualizationWindow(parentWindow, df):
         df = preprocessData(df)
 
         properties = df.columns.tolist()
-        qualities = [quality.value for quality in Quality]
+        indicators = [indicator.value for indicator in Indicator]
         chartTypes = [chartType.value for chartType in ChartType]
 
         ttk.Label(vizWindow, text="Свойство:").grid(row=0, column=0, padx=10, pady=10)
@@ -201,10 +201,10 @@ def createVisualizationWindow(parentWindow, df):
         propertyCombo.grid(row=0, column=1, padx=10, pady=10)
         propertyCombo.set("")
 
-        ttk.Label(vizWindow, text="Качество:").grid(row=1, column=0, padx=10, pady=10)
-        qualityCombo = ttk.Combobox(vizWindow, values=qualities)
-        qualityCombo.grid(row=1, column=1, padx=10, pady=10)
-        qualityCombo.state(["disabled"])
+        ttk.Label(vizWindow, text="Показатель:").grid(row=1, column=0, padx=10, pady=10)
+        indicatorCombo = ttk.Combobox(vizWindow, values=indicators)
+        indicatorCombo.grid(row=1, column=1, padx=10, pady=10)
+        indicatorCombo.state(["disabled"])
 
         ttk.Label(vizWindow, text="Тип диаграммы:").grid(
             row=2, column=0, padx=10, pady=10
@@ -213,44 +213,43 @@ def createVisualizationWindow(parentWindow, df):
         chartCombo.grid(row=2, column=1, padx=10, pady=10)
         chartCombo.state(["disabled"])
 
-        def updateQualities(event):
+        def updateIndicators(event):
             try:
                 selectedProperty = propertyCombo.get()
-                qualityCombo.state(["disabled"])
+                indicatorCombo.state(["disabled"])
                 chartCombo.state(["disabled"])
 
-                newQualities = analyzeProperty(df, selectedProperty)
-                qualityCombo.config(values=[quality.value for quality in newQualities])
-                qualityCombo.set("")
-                qualityCombo.state(["!disabled"])
+                newIndicators = analyzeProperty(df, selectedProperty)
+                indicatorCombo.config(
+                    values=[indicator.value for indicator in newIndicators]
+                )
+                indicatorCombo.set("")
+                indicatorCombo.state(["!disabled"])
             except Exception as e:
                 showError(vizWindow, f"Ошибка при обновлении качеств: {e}")
 
         def updateChartTypes(event):
             try:
-                selectedQuality = Quality(qualityCombo.get())
+                selectedIndicator = Indicator(indicatorCombo.get())
                 chartCombo.state(["disabled"])
 
-                newChartTypes = getChartTypesForQuality([selectedQuality])
+                newChartTypes = getChartTypesForIndicator([selectedIndicator])
                 chartCombo.config(values=newChartTypes)
                 chartCombo.set("")
-                chartCombo.state(["disabled"])
+                chartCombo.state(["!disabled"])
             except Exception as e:
                 showError(vizWindow, f"Ошибка при обновлении типов диаграмм: {e}")
 
-        propertyCombo.bind("<<ComboboxSelected>>", updateQualities)
-        qualityCombo.bind("<<ComboboxSelected>>", updateChartTypes)
+        propertyCombo.bind("<<ComboboxSelected>>", updateIndicators)
+        indicatorCombo.bind("<<ComboboxSelected>>", updateChartTypes)
 
         def confirmVisualization():
             try:
                 selectedProperty = propertyCombo.get()
-                selectedQuality = Quality(qualityCombo.get())
+                selectedIndicator = Indicator(indicatorCombo.get())
                 selectedChart = ChartType(chartCombo.get())
-                print(
-                    f"Selected property: {selectedProperty}, quality: {selectedQuality}, chart: {selectedChart}"
-                )
 
-                data = prepareData(df, selectedProperty, selectedQuality)
+                data = prepareData(df, selectedProperty, selectedIndicator)
                 if data is not None:
                     plotData(data, selectedProperty, selectedChart.value)
                 else:

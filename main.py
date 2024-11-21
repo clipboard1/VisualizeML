@@ -1,4 +1,4 @@
-from tkinter import filedialog, messagebox, simpledialog
+from tkinter import filedialog, simpledialog
 from DataHandlers.CsvHandler import loadCsvFile
 from DataHandlers.DbHandler import (
     connectToDatabase,
@@ -42,9 +42,9 @@ def connectToDb():
     )
 
 
-def createTableSelectionWindowWrapper(parentWindow, conn, cursor):
+def createTableSelectionWindowWrapper(parentWindow, cursor):
     createTableSelectionWindow(
-        parentWindow, conn, cursor, loadTableToDataFrame, createVisualizationWindow
+        parentWindow, cursor, loadTableToDataFrame, createVisualizationWindow
     )
 
 

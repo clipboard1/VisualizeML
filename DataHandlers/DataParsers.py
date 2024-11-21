@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-from enums import Quality, ChartType
+from enums import Indicator, ChartType
 
 
 def preprocessData(df):
@@ -23,26 +23,26 @@ def preprocessData(df):
     return df
 
 
-def prepareData(df, property, quality):
+def prepareData(df, property, indicator):
     data = None
-    if quality == Quality.MEDIANA:
+    if indicator == Indicator.MEDIANA:
         data = pd.Series(
             [
                 df[property].median(),
                 df[property].quantile(0.25),
                 df[property].quantile(0.75),
             ],
-            index=["Медиана", "25-й перцентиль", "75-й перцентиль"],
+            index=["Медиана", "25-й процентиль", "75-й процентиль"],
         )
-    elif quality == Quality.FREQUENCY:
+    elif indicator == Indicator.FREQUENCY:
         data = df[property].value_counts()
-    elif quality == Quality.UNIQUE_COUNT:
-        data = pd.Series([df[property].nunique()], index=[property])
-    elif quality == Quality.TRUE_COUNT:
+    elif indicator == Indicator.TRUE_COUNT:
         data = pd.Series([df[property].sum()], index=[property])
-    elif quality == Quality.FALSE_COUNT:
+    elif indicator == Indicator.FALSE_COUNT:
         data = pd.Series([(~df[property]).sum()], index=[property])
-    elif quality == Quality.DISTRIBUTION or pd.api.types.is_numeric_dtype(df[property]):
+    elif indicator == Indicator.DISTRIBUTION or pd.api.types.is_numeric_dtype(
+        df[property]
+    ):
         data = df[property].dropna()
     return data
 
@@ -84,34 +84,31 @@ def plotData(data, property, chartType):
 def analyzeProperty(df, propertyName):
     if pd.api.types.is_bool_dtype(df[propertyName]):
         return [
-            Quality.FREQUENCY,
-            Quality.TRUE_COUNT,
-            Quality.FALSE_COUNT,
+            Indicator.FREQUENCY,
+            Indicator.TRUE_COUNT,
+            Indicator.FALSE_COUNT,
         ]
     elif pd.api.types.is_numeric_dtype(df[propertyName]):
-        return [Quality.MEDIANA, Quality.DISTRIBUTION]
+        return [Indicator.MEDIANA, Indicator.DISTRIBUTION]
     elif pd.api.types.is_string_dtype(df[propertyName]):
-        return [
-            Quality.FREQUENCY,
-            Quality.UNIQUE_COUNT,
-        ]
+        return [Indicator.FREQUENCY]
     else:
-        return [Quality.FREQUENCY, Quality.UNIQUE_COUNT]
+        return [Indicator.FREQUENCY]
 
 
-def getChartTypesForQuality(qualities):
+def getChartTypesForIndicator(indicators):
     chartTypes = set()
 
-    for quality in qualities:
-        if quality in [Quality.MEDIANA, Quality.DISTRIBUTION]:
+    for indicator in indicators:
+        if indicator in [Indicator.MEDIANA, Indicator.DISTRIBUTION]:
             chartTypes.add(ChartType.LINEAR)
-        if quality == Quality.DISTRIBUTION:
+        if indicator == Indicator.DISTRIBUTION:
             chartTypes.add(ChartType.REGRESSION)
             chartTypes.add(ChartType.SCATTER)
-        if quality in [Quality.FREQUENCY, Quality.UNIQUE_COUNT]:
+        if indicator in Indicator.FREQUENCY:
             chartTypes.add(ChartType.BAR)
             chartTypes.add(ChartType.PIE)
-        if quality in [Quality.TRUE_COUNT, Quality.FALSE_COUNT]:
+        if indicator in [Indicator.TRUE_COUNT, Indicator.FALSE_COUNT]:
             chartTypes.add(ChartType.BAR)
         if not chartTypes:
             chartTypes.update(
