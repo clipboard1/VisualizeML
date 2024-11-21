@@ -105,7 +105,7 @@ def getChartTypesForIndicator(indicators):
         if indicator == Indicator.DISTRIBUTION:
             chartTypes.add(ChartType.REGRESSION)
             chartTypes.add(ChartType.SCATTER)
-        if indicator in Indicator.FREQUENCY:
+        if indicator == Indicator.FREQUENCY:
             chartTypes.add(ChartType.BAR)
             chartTypes.add(ChartType.PIE)
         if indicator in [Indicator.TRUE_COUNT, Indicator.FALSE_COUNT]:
